@@ -1,6 +1,6 @@
 # SystemPaperDaily
 
-> 每日自动抓取系统领域 (OSDI/SOSP/EuroSys) 最新论文，**下载 PDF 提取前3页和最后1页**（包含摘要、引言、结论），使用 Gemini/DeepSeek AI 深度总结，推送到 Discord/Slack，归档到 GitHub Issues。
+> 每日自动抓取系统领域 (OSDI/SOSP/EuroSys) 最新论文，**下载 PDF 提取前3页和最后1页**（包含摘要、引言、结论），使用 Gemini/DeepSeek/OpenAI AI 深度总结，推送到 Discord/Slack，归档到 GitHub Issues。
 
 ## 架构概览
 
@@ -62,7 +62,7 @@ SystemPaperDaily/
 ## 🚀 核心特性
 
 - **📄 深度内容提取**：不止摘要！自动下载 PDF 并提取前3页（摘要 + 引言）和最后1页（结论），全面理解论文脉络
-- **🤖 多 LLM 支持**：支持 Google Gemini 和 DeepSeek，可根据成本和性能需求灵活切换
+- **🤖 多 LLM 支持**：支持 Google Gemini、DeepSeek 和 OpenAI ChatGPT，可根据成本和性能需求灵活切换
 - **📅 每日汇总归档**：所有论文汇总到单个 GitHub Issue（按日期），便于长期追踪和回顾
 - **🔔 实时推送**：自动推送到 Discord / Slack，第一时间获取最新论文动态
 - **♻️ 智能去重**：基于 GitHub Issues 的去重机制，避免重复处理
@@ -89,7 +89,8 @@ cp .env.example .env
 
 | 变量 | 说明 | 必须 |
 |------|------|------|
-| `LLM_PROVIDER` | LLM 提供商 (`gemini` / `deepseek`) | ✅ (默认 `deepseek`) |
+| `LLM_PROVIDER` | LLM 提供商 (`gemini` / `deepseek` / `openai`) | ✅ (默认 `deepseek`) |
+| `OPENAI_API_KEY` | OpenAI API Key (当 `LLM_PROVIDER=openai`) | 条件必须 |
 | `DEEPSEEK_API_KEY` | DeepSeek API Key (当 `LLM_PROVIDER=deepseek`) | 条件必须 |
 | `GEMINI_API_KEY` | Google Gemini API Key (当 `LLM_PROVIDER=gemini`) | 条件必须 |
 | `GITHUB_TOKEN` | GitHub PAT (需 `repo` 权限) | ✅ |
@@ -108,23 +109,35 @@ python main.py
 
 #### LLM 提供商选择
 
-项目支持 **Google Gemini** 和 **DeepSeek** 两种 LLM：
+项目支持 **Google Gemini**、**DeepSeek** 和 **OpenAI ChatGPT** 三种 LLM：
 
 | 提供商 | 优势 | 配置 |
 |--------|------|------|
 | **DeepSeek** (默认) | 性价比高、中文友好、API 稳定 | `LLM_PROVIDER=deepseek` + `DEEPSEEK_API_KEY` |
+| **OpenAI** | 效果稳定、生态成熟、GPT-4o 系列 | `LLM_PROVIDER=openai` + `OPENAI_API_KEY` |
 | **Gemini** | Google 官方、功能强大 | `LLM_PROVIDER=gemini` + `GEMINI_API_KEY` |
 
 在 `.env` 中设置 `LLM_PROVIDER` 即可切换：
 
 ```bash
-# 使用 DeepSeek (推荐)
+# 使用 DeepSeek (推荐，性价比)
 LLM_PROVIDER=deepseek
 DEEPSEEK_API_KEY=sk-xxxxx
+
+# 使用 OpenAI ChatGPT
+LLM_PROVIDER=openai
+OPENAI_API_KEY=sk-xxxxx
+OPENAI_MODEL=gpt-4o-mini  # 或 gpt-4o, gpt-4-turbo
 
 # 或使用 Gemini
 LLM_PROVIDER=gemini
 GEMINI_API_KEY=your_key
+```
+
+**测试配置**：使用提供的测试脚本验证配置是否正确：
+
+```bash
+python test_openai.py  # 测试 OpenAI 配置
 ```
 
 #### PDF 提取模式选择
@@ -155,7 +168,7 @@ PDF_EXTRACT_MODE=full
 将以下 Secrets 添加到你的 GitHub 仓库 **Settings → Secrets and variables → Actions**：
 
 - `LLM_PROVIDER` (可选，默认 `deepseek`)
-- `DEEPSEEK_API_KEY` 或 `GEMINI_API_KEY` (根据 LLM_PROVIDER 选择)
+- `OPENAI_API_KEY` / `DEEPSEEK_API_KEY` / `GEMINI_API_KEY` (根据 LLM_PROVIDER 选择)
 - `WEBHOOK_URL` (可选)
 
 > `GITHUB_TOKEN` 由 Actions 自动提供，无需手动配置。

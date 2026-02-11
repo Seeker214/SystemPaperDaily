@@ -58,10 +58,10 @@ WEBHOOK_URL: str = os.getenv("WEBHOOK_URL", "")            # Discord / Slack Web
 GITHUB_REPOSITORY: str = os.getenv("GITHUB_REPOSITORY", "")  # owner/repo 格式
 
 # ──────────────────────────────────────────────
-#  2.1 LLM 提供商选择 (gemini / deepseek)
+#  2.1 LLM 提供商选择 (gemini / deepseek / openai)
 # ──────────────────────────────────────────────
 
-LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "deepseek").lower()  # gemini / deepseek
+LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "deepseek").lower()  # gemini / deepseek / openai
 
 # Gemini 配置
 GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
@@ -71,6 +71,11 @@ GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 DEEPSEEK_API_KEY: str = os.getenv("DEEPSEEK_API_KEY", "")
 DEEPSEEK_BASE_URL: str = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
 DEEPSEEK_MODEL: str = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
+
+# OpenAI / ChatGPT 配置
+OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
+OPENAI_BASE_URL: str = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
+OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 
 TEMPERATURE: float = 1.0
 
@@ -144,6 +149,7 @@ LLM_RETRY_BASE_DELAY: int = 30    # 首次重试等待秒数 (指数退避基数
 # LLM 输出 token 限制 (影响总结详细程度)
 GEMINI_MAX_OUTPUT_TOKENS: int = 3072   # Gemini 输出限制 (~2000 字)
 DEEPSEEK_MAX_TOKENS: int = 3000        # DeepSeek 输出限制 (~2000 字)
+OPENAI_MAX_TOKENS: int = 3000          # OpenAI 输出限制 (~2000 字)
 
 # ──────────────────────────────────────────────
 #  8. 杂项
@@ -169,8 +175,12 @@ def validate() -> bool:
         if not DEEPSEEK_API_KEY:
             logger.error("[config] LLM_PROVIDER=deepseek 但缺少 DEEPSEEK_API_KEY")
             ok = False
+    elif LLM_PROVIDER == "openai":
+        if not OPENAI_API_KEY:
+            logger.error("[config] LLM_PROVIDER=openai 但缺少 OPENAI_API_KEY")
+            ok = False
     else:
-        logger.error("[config] LLM_PROVIDER 必须为 'gemini' 或 'deepseek'，当前值: %s", LLM_PROVIDER)
+        logger.error("[config] LLM_PROVIDER 必须为 'gemini'、'deepseek' 或 'openai'，当前值: %s", LLM_PROVIDER)
         ok = False
     
     if not GITHUB_TOKEN:
