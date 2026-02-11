@@ -58,6 +58,15 @@ WEBHOOK_URL: str = os.getenv("WEBHOOK_URL", "")            # Discord / Slack Web
 GITHUB_REPOSITORY: str = os.getenv("GITHUB_REPOSITORY", "")  # owner/repo 格式
 
 # ──────────────────────────────────────────────
+#  2.2 Gmail 邮件日报配置
+# ──────────────────────────────────────────────
+
+EMAIL_ENABLED: bool = os.getenv("EMAIL_ENABLED", "false").lower() == "true"
+GMAIL_USER: str = os.getenv("GMAIL_USER", "")  # 发件人邮箱
+GMAIL_APP_PASSWORD: str = os.getenv("GMAIL_APP_PASSWORD", "")  # Gmail 应用专用密码
+GMAIL_TO: str = os.getenv("GMAIL_TO", "")  # 收件人邮箱
+
+# ──────────────────────────────────────────────
 #  2.1 LLM 提供商选择 (gemini / deepseek / openai)
 # ──────────────────────────────────────────────
 
@@ -191,4 +200,13 @@ def validate() -> bool:
         ok = False
     if not WEBHOOK_URL:
         logger.warning("[config] 未设置 WEBHOOK_URL，将跳过消息推送")
+    
+    # 邮件配置检查 (可选)
+    if EMAIL_ENABLED:
+        if not GMAIL_USER or not GMAIL_APP_PASSWORD or not GMAIL_TO:
+            logger.warning(
+                "[config] EMAIL_ENABLED=true 但邮件配置不完整，将跳过邮件发送\n"
+                "  需要设置: GMAIL_USER, GMAIL_APP_PASSWORD, GMAIL_TO"
+            )
+    
     return ok

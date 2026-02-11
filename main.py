@@ -32,7 +32,7 @@ from src.sources.rss_source import RSSSource
 from src.sources.base import Paper
 from src.deduplicator import Deduplicator
 from src.summarizer import summarize
-from src.notifier import notify_daily_digest, notify_daily_summary
+from src.notifier import notify_daily_digest, notify_daily_summary, send_email_digest
 from src.pdf_extractor import extract_paper_content
 
 
@@ -134,7 +134,7 @@ def run() -> None:
         skipped=skipped_count,
     )
 
-    # ── 7. 推送每日汇总到 Discord/Slack ──────────
+    # ── 7. 推送每日汇总 ──────────────────────────
     logger.info("=" * 60)
     logger.info(
         "运行结束: 总计 %d 篇, 新处理 %d 篇, 跳过 %d 篇",
@@ -143,8 +143,13 @@ def run() -> None:
     logger.info("=" * 60)
 
     if daily_results:
+        # 7a. Webhook 推送 (Discord/Slack)
         notify_daily_digest(daily_results)
+        
+        # 7b. 邮件日报推送 (Gmail)
+        send_email_digest(daily_results)
 
+    # 7c. 统计信息推送
     notify_daily_summary(
         total=len(all_papers),
         processed=processed_count,

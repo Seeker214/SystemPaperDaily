@@ -50,8 +50,12 @@ SystemPaperDaily/
 │   │   └── rss_source.py   # RSS Feed 数据源
 │   ├── deduplicator.py     # GitHub Issues 去重 & 归档 (每日一个 Issue)
 │   ├── pdf_extractor.py    # PDF 内容提取 (前3页 + 最后1页)
-│   ├── summarizer.py       # LLM 总结 (Gemini / DeepSeek)
-│   └── notifier.py         # Discord/Slack Webhook 推送
+│   ├── summarizer.py       # LLM 总结 (Gemini / DeepSeek / OpenAI)
+│   └── notifier.py         # Discord/Slack Webhook 推送 & Gmail 邮件日报
+├── tests/
+│   ├── test_openai.py      # OpenAI API 配置测试
+│   ├── test_gmail.py       # Gmail 邮件配置测试
+│   └── README.md           # 测试说明文档
 ├── config.py               # 配置 & 代理检测
 ├── main.py                 # 主编排入口
 ├── requirements.txt
@@ -63,7 +67,8 @@ SystemPaperDaily/
 
 - **📄 深度内容提取**：不止摘要！自动下载 PDF 并提取前3页（摘要 + 引言）和最后1页（结论），全面理解论文脉络
 - **🤖 多 LLM 支持**：支持 Google Gemini、DeepSeek 和 OpenAI ChatGPT，可根据成本和性能需求灵活切换
-- **📅 每日汇总归档**：所有论文汇总到单个 GitHub Issue（按日期），便于长期追踪和回顾
+- **� 邮件日报**：支持 Gmail 邮件日报，每日自动发送精美 HTML 格式的论文汇总到您的邮箱
+- **�📅 每日汇总归档**：所有论文汇总到单个 GitHub Issue（按日期），便于长期追踪和回顾
 - **🔔 实时推送**：自动推送到 Discord / Slack，第一时间获取最新论文动态
 - **♻️ 智能去重**：基于 GitHub Issues 的去重机制，避免重复处理
 - **🌐 本地代理支持**：自动检测并配置代理，方便本地开发调试
@@ -95,6 +100,10 @@ cp .env.example .env
 | `GEMINI_API_KEY` | Google Gemini API Key (当 `LLM_PROVIDER=gemini`) | 条件必须 |
 | `GITHUB_TOKEN` | GitHub PAT (需 `repo` 权限) | ✅ |
 | `GITHUB_REPOSITORY` | `owner/repo` 格式 | ✅ |
+| `EMAIL_ENABLED` | 启用 Gmail 邮件日报 (`true` / `false`) | ❌ (默认 `false`) |
+| `GMAIL_USER` | Gmail 发件人邮箱地址 | 条件必须 (当 `EMAIL_ENABLED=true`) |
+| `GMAIL_APP_PASSWORD` | Gmail 应用专用密码 | 条件必须 (当 `EMAIL_ENABLED=true`) |
+| `GMAIL_TO` | 收件人邮箱地址 | 条件必须 (当 `EMAIL_ENABLED=true`) |
 | `PDF_EXTRACT_MODE` | PDF 提取模式 (`partial` / `full`) | ❌ (默认 `partial`) |
 | `WEBHOOK_URL` | Discord / Slack Webhook URL | ❌ |
 | `PROXY_URL` | 自定义代理地址 (默认 `http://127.0.0.1:7890`) | ❌ |
@@ -137,8 +146,65 @@ GEMINI_API_KEY=your_key
 **测试配置**：使用提供的测试脚本验证配置是否正确：
 
 ```bash
-python test_openai.py  # 测试 OpenAI 配置
+python tests/test_openai.py  # 测试 OpenAI 配置
 ```
+
+#### Gmail 邮件日报配置
+
+项目支持通过 Gmail 发送精美的 HTML 格式每日论文汇总邮件。
+
+**启用步骤**：
+
+1. **获取 Gmail 应用专用密码**：
+   
+   由于 Gmail 不再支持直接使用账户密码登录第三方应用，需要生成应用专用密码：
+   
+   - 访问 [Google 账户安全设置](https://myaccount.google.com/security)
+   - 启用 **两步验证**（如果尚未启用）
+   - 点击 **应用专用密码**（App passwords）
+   - 选择应用：**邮件**，设备：**其他**（自定义名称如 "SystemPaperDaily"）
+   - 复制生成的 16 位密码（无空格）
+
+2. **配置环境变量**：
+   
+   在 `.env` 文件中添加：
+   
+   ```bash
+   EMAIL_ENABLED=true
+   GMAIL_USER=your-email@gmail.com
+   GMAIL_APP_PASSWORD=abcdefghijklmnop  # 16位应用专用密码
+   GMAIL_TO=recipient@gmail.com  # 可以与 GMAIL_USER 相同
+   ```
+
+3. **测试邮件发送**：
+   
+   使用专门的测试脚本验证配置：
+   
+   ```bash
+   python tests/test_gmail.py
+   ```
+   
+   或运行一次完整流程，检查邮箱是否收到邮件：
+   
+   ```bash
+   python main.py
+   ```
+
+**邮件特性**：
+
+- 📧 **精美 HTML 格式**：使用 Markdown 转 HTML，带响应式样式
+- 📊 **完整论文信息**：包含标题、作者、分类、链接、AI 总结
+- 🎨 **专业排版**：清晰的层级结构，易于阅读
+- 📱 **移动友好**：自适应布局，手机阅读体验佳
+
+**邮件示例标题**：`[System Paper Daily] 2026-02-11 (共 5 篇)`
+
+**注意事项**：
+
+- 使用应用专用密码，**不是** Gmail 账户密码
+- 确保启用了两步验证
+- 如果发送失败，检查日志中的详细错误信息
+- Gmail 每日发送限额：500 封（个人账户）
 
 #### PDF 提取模式选择
 
@@ -190,6 +256,40 @@ KEYWORDS = [
     # ... 添加更多关键词
 ]
 ```
+
+## 🧪 测试
+
+项目提供了测试脚本来验证各项配置。所有测试脚本位于 `tests/` 目录。
+
+### OpenAI API 测试
+
+验证 OpenAI/ChatGPT 配置：
+
+```bash
+python tests/test_openai.py
+```
+
+测试内容：
+- ✅ API Key 和 Base URL 配置
+- ✅ 客户端连接测试
+- ✅ 实际 API 调用
+- ✅ 响应格式验证
+
+### Gmail 邮件测试
+
+验证 Gmail 邮件配置并发送测试邮件：
+
+```bash
+python tests/test_gmail.py
+```
+
+测试内容：
+- ✅ Gmail 配置完整性检查
+- ✅ SMTP 连接测试
+- ✅ 发送测试邮件（包含示例论文）
+- ✅ HTML 格式验证
+
+详细测试文档请查看 [tests/README.md](tests/README.md)。
 
 ## AI 总结输出格式
 
