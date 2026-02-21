@@ -19,9 +19,9 @@ python tests/test_openai.py
 - ✅ API 调用测试
 - ✅ 响应格式验证
 
-### 2. `test_gmail.py` - Gmail 邮件配置测试
+### 2. `test_gmail.py` - QQ 邮箱配置测试
 
-验证 Gmail 邮件日报配置是否正确。
+验证 QQ 邮箱邮件日报配置是否正确。
 
 **运行方式**：
 ```bash
@@ -29,7 +29,7 @@ python tests/test_gmail.py
 ```
 
 **检查项目**：
-- ✅ Gmail 配置完整性
+- ✅ QQ 邮箱配置完整性
 - ✅ SMTP 连接测试
 - ✅ 发送测试邮件
 - ✅ HTML 格式验证
@@ -46,12 +46,12 @@ OPENAI_BASE_URL=https://api.openai.com/v1
 OPENAI_MODEL=gpt-4o-mini
 ```
 
-### Gmail 测试所需配置：
+### QQ 邮箱测试所需配置：
 ```bash
 EMAIL_ENABLED=true
-GMAIL_USER=your-email@gmail.com
-GMAIL_APP_PASSWORD=your-16-digit-app-password
-GMAIL_TO=recipient@gmail.com
+QQ_MAIL_USER=your-email@qq.com
+QQ_MAIL_AUTH_CODE=your-authorization-code
+QQ_MAIL_TO=recipient@example.com
 ```
 
 ## 故障排查

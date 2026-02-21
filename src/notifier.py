@@ -1,5 +1,5 @@
 """
-通知模块 — 推送论文每日汇总到 Discord / Slack Webhook 或 Gmail 邮件。
+通知模块 — 推送论文每日汇总到 Discord / Slack Webhook 或 QQ 邮箱邮件。
 """
 
 from __future__ import annotations
@@ -202,12 +202,12 @@ def notify_daily_summary(total: int, processed: int, skipped: int) -> bool:
     return _post_webhook(payload)
 
 
-# ── Gmail 邮件日报 ───────────────────────────────────
+# ── QQ 邮箱邮件日报 ───────────────────────────────────
 
 
 def send_email_digest(results: List[Tuple[Paper, str]]) -> bool:
     """
-    发送每日论文汇总邮件到 Gmail。
+    发送每日论文汇总邮件（通过 QQ 邮箱）。
     
     Args:
         results: [(paper, summary), ...] 列表。
@@ -219,8 +219,8 @@ def send_email_digest(results: List[Tuple[Paper, str]]) -> bool:
         logger.info("[Notifier] 邮件功能未启用 (EMAIL_ENABLED=false)")
         return False
     
-    if not config.GMAIL_USER or not config.GMAIL_APP_PASSWORD or not config.GMAIL_TO:
-        logger.error("[Notifier] Gmail 配置不完整，跳过邮件发送")
+    if not config.QQ_MAIL_USER or not config.QQ_MAIL_AUTH_CODE or not config.QQ_MAIL_TO:
+        logger.error("[Notifier] QQ 邮箱配置不完整，跳过邮件发送")
         return False
     
     if not results:
@@ -333,8 +333,8 @@ def send_email_digest(results: List[Tuple[Paper, str]]) -> bool:
         
         # 创建邮件对象
         msg = MIMEMultipart('alternative')
-        msg['From'] = config.GMAIL_USER
-        msg['To'] = config.GMAIL_TO
+        msg['From'] = config.QQ_MAIL_USER
+        msg['To'] = config.QQ_MAIL_TO
         msg['Subject'] = subject
         
         # 添加纯文本版本（作为后备）
@@ -346,18 +346,18 @@ def send_email_digest(results: List[Tuple[Paper, str]]) -> bool:
         msg.attach(html_part)
         
         # 发送邮件
-        logger.info("[Notifier] 正在连接 Gmail SMTP 服务器...")
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=30) as server:
-            server.login(config.GMAIL_USER, config.GMAIL_APP_PASSWORD)
+        logger.info("[Notifier] 正在连接 QQ 邮箱 SMTP 服务器...")
+        with smtplib.SMTP_SSL('smtp.qq.com', 465, timeout=30) as server:
+            server.login(config.QQ_MAIL_USER, config.QQ_MAIL_AUTH_CODE)
             server.send_message(msg)
         
         logger.info("[Notifier] ✅ 邮件发送成功: %s → %s (%d 篇论文)", 
-                    config.GMAIL_USER, config.GMAIL_TO, len(results))
+                    config.QQ_MAIL_USER, config.QQ_MAIL_TO, len(results))
         return True
         
     except smtplib.SMTPAuthenticationError as e:
-        logger.error("[Notifier] ❌ Gmail 认证失败: %s", e)
-        logger.error("请检查：1) GMAIL_USER 是否正确  2) GMAIL_APP_PASSWORD 是否是应用专用密码（非账户密码）")
+        logger.error("[Notifier] ❌ QQ 邮箱认证失败: %s", e)
+        logger.error("请检查：1) QQ_MAIL_USER 是否正确  2) QQ_MAIL_AUTH_CODE 是否是有效的授权码")
         return False
     except smtplib.SMTPException as e:
         logger.error("[Notifier] ❌ SMTP 错误: %s", e)

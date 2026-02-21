@@ -1,5 +1,5 @@
-"""Gmail 邮件发送测试脚本
-快速验证您的 Gmail 配置是否正确。
+"""QQ 邮箱发送测试脚本
+快速验证您的 QQ 邮箱配置是否正确。
 """
 
 import logging
@@ -27,36 +27,36 @@ except ImportError as e:
 
 
 def test_gmail_config():
-    """测试 Gmail 配置。"""
+    """测试 QQ 邮箱配置。"""
     logger.info("=" * 60)
-    logger.info("Gmail 邮件配置测试")
+    logger.info("QQ 邮箱配置测试")
     logger.info("=" * 60)
     
     # 1. 检查配置
     logger.info("检查环境变量配置...")
     logger.info("  EMAIL_ENABLED: %s", config.EMAIL_ENABLED)
-    logger.info("  GMAIL_USER: %s", 
-                config.GMAIL_USER if config.GMAIL_USER else "❌ 未设置")
-    logger.info("  GMAIL_APP_PASSWORD: %s", 
-                "已设置" if config.GMAIL_APP_PASSWORD else "❌ 未设置")
-    logger.info("  GMAIL_TO: %s", 
-                config.GMAIL_TO if config.GMAIL_TO else "❌ 未设置")
+    logger.info("  QQ_MAIL_USER: %s", 
+                config.QQ_MAIL_USER if config.QQ_MAIL_USER else "❌ 未设置")
+    logger.info("  QQ_MAIL_AUTH_CODE: %s", 
+                "已设置" if config.QQ_MAIL_AUTH_CODE else "❌ 未设置")
+    logger.info("  QQ_MAIL_TO: %s", 
+                config.QQ_MAIL_TO if config.QQ_MAIL_TO else "❌ 未设置")
     
     if not config.EMAIL_ENABLED:
         logger.warning("⚠️  EMAIL_ENABLED=false，邮件功能未启用")
         logger.info("\n请在 .env 文件中设置 EMAIL_ENABLED=true")
         return False
     
-    if not config.GMAIL_USER or not config.GMAIL_APP_PASSWORD or not config.GMAIL_TO:
-        logger.error("❌ Gmail 配置不完整")
+    if not config.QQ_MAIL_USER or not config.QQ_MAIL_AUTH_CODE or not config.QQ_MAIL_TO:
+        logger.error("❌ QQ 邮箱配置不完整")
         logger.error("\n请在 .env 文件中设置:")
-        logger.error("  GMAIL_USER=your-email@gmail.com")
-        logger.error("  GMAIL_APP_PASSWORD=your-16-digit-app-password")
-        logger.error("  GMAIL_TO=recipient@gmail.com")
-        logger.error("\n如何获取应用专用密码:")
-        logger.error("  1. 访问 https://myaccount.google.com/security")
-        logger.error("  2. 启用两步验证")
-        logger.error("  3. 生成应用专用密码")
+        logger.error("  QQ_MAIL_USER=your-email@qq.com")
+        logger.error("  QQ_MAIL_AUTH_CODE=your-authorization-code")
+        logger.error("  QQ_MAIL_TO=recipient@example.com")
+        logger.error("\n如何获取 QQ 邮箱授权码:")
+        logger.error("  1. 登录 QQ 邮箱 https://mail.qq.com")
+        logger.error("  2. 进入 设置 → 账户 → POP3/IMAP/SMTP/Exchange/CardDAV/CalDAV 服务")
+        logger.error("  3. 开启 SMTP 服务并获取授权码")
         return False
     
     # 2. 创建测试数据
@@ -97,8 +97,8 @@ def test_gmail_config():
     
     # 3. 发送测试邮件
     logger.info("\n发送测试邮件...")
-    logger.info("  从: %s", config.GMAIL_USER)
-    logger.info("  到: %s", config.GMAIL_TO)
+    logger.info("  从: %s", config.QQ_MAIL_USER)
+    logger.info("  到: %s", config.QQ_MAIL_TO)
     logger.info("  论文数量: %d", len(test_papers))
     
     try:
@@ -106,14 +106,14 @@ def test_gmail_config():
         
         if success:
             logger.info("\n" + "=" * 60)
-            logger.info("✓ Gmail 邮件发送测试通过！")
+            logger.info("✓ QQ 邮箱发送测试通过！")
             logger.info("=" * 60)
-            logger.info("\n请检查邮箱 %s 是否收到测试邮件", config.GMAIL_TO)
+            logger.info("\n请检查邮箱 %s 是否收到测试邮件", config.QQ_MAIL_TO)
             logger.info("邮件标题应为: [System Paper Daily] YYYY-MM-DD (共 1 篇)")
             logger.info("\n如果未收到邮件，请检查:")
             logger.info("  1. 垃圾邮件/垃圾箱文件夹")
-            logger.info("  2. Gmail 应用专用密码是否正确")
-            logger.info("  3. 两步验证是否已启用")
+            logger.info("  2. QQ 邮箱授权码是否正确")
+            logger.info("  3. SMTP 服务是否已开启")
             return True
         else:
             logger.error("\n❌ 邮件发送失败")

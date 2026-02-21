@@ -146,7 +146,7 @@ def run() -> None:
         # 7a. Webhook 推送 (Discord/Slack)
         notify_daily_digest(daily_results)
         
-        # 7b. 邮件日报推送 (Gmail)
+        # 7b. 邮件日报推送 (QQ 邮箱)
         send_email_digest(daily_results)
 
     # 7c. 统计信息推送
