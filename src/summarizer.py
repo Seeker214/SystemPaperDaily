@@ -9,9 +9,11 @@ import time
 from typing import Optional
 
 try:
-    import google.generativeai as genai
+    from google import genai
+    from google.genai import types as genai_types
 except ImportError:
     genai = None
+    genai_types = None
 
 try:
     from openai import OpenAI
@@ -61,28 +63,24 @@ SYSTEM_PROMPT = """\
 """
 
 
-def _init_model() -> genai.GenerativeModel:
-    """初始化 Gemini 模型。"""
-    genai.configure(api_key=config.GEMINI_API_KEY)
-    model = genai.GenerativeModel(
-        model_name=config.GEMINI_MODEL,
-        system_instruction=SYSTEM_PROMPT,
-    )
-    return model
+def _init_gemini_client() -> "genai.Client":
+    """初始化 Gemini 客户端。"""
+    client = genai.Client(api_key=config.GEMINI_API_KEY)
+    return client
 
 
 # 模块级 lazy 单例
-_gemini_model: Optional["genai.GenerativeModel"] = None
+_gemini_client: Optional["genai.Client"] = None
 _deepseek_client: Optional[OpenAI] = None
 _openai_client: Optional[OpenAI] = None
 
 
-def _get_gemini_model() -> "genai.GenerativeModel":
-    """获取 Gemini 模型单例。"""
-    global _gemini_model
-    if _gemini_model is None:
-        _gemini_model = _init_model()
-    return _gemini_model
+def _get_gemini_client() -> "genai.Client":
+    """获取 Gemini 客户端单例。"""
+    global _gemini_client
+    if _gemini_client is None:
+        _gemini_client = _init_gemini_client()
+    return _gemini_client
 
 
 def _get_deepseek_client() -> OpenAI:
@@ -126,9 +124,9 @@ def _get_openai_client() -> OpenAI:
 def _summarize_with_gemini(text_content: str, max_retries: int, base_delay: int) -> str:
     """使用 Gemini 生成总结（带重试）。"""
     if genai is None:
-        return "⚠️ 未安装 google-generativeai 库"
+        return "⚠️ 未安装 google-genai 库"
     
-    model = _get_gemini_model()
+    client = _get_gemini_client()
     
     # 根据 PDF 提取模式调整提示词
     if config.PDF_EXTRACT_MODE == "full":
@@ -145,9 +143,11 @@ def _summarize_with_gemini(text_content: str, max_retries: int, base_delay: int)
 
     for attempt in range(max_retries + 1):
         try:
-            response = model.generate_content(
-                user_prompt,
-                generation_config=genai.types.GenerationConfig(
+            response = client.models.generate_content(
+                model=config.GEMINI_MODEL,
+                contents=user_prompt,
+                config=genai_types.GenerateContentConfig(
+                    system_instruction=SYSTEM_PROMPT,
                     temperature=config.TEMPERATURE,
                     max_output_tokens=config.GEMINI_MAX_OUTPUT_TOKENS,
                 ),
@@ -161,7 +161,7 @@ def _summarize_with_gemini(text_content: str, max_retries: int, base_delay: int)
             candidate = response.candidates[0]
 
             # 检查 finish_reason
-            if hasattr(candidate, "finish_reason") and candidate.finish_reason not in (None, 1):
+            if hasattr(candidate, "finish_reason") and candidate.finish_reason not in (None, "STOP"):
                 logger.warning(
                     "[Summarizer/Gemini] finish_reason=%s", candidate.finish_reason
                 )

@@ -19,10 +19,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Python 3.10
+      - name: Setup Python 3.11
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11'
           cache: 'pip'
 
       - name: Install dependencies
@@ -30,10 +30,34 @@ jobs:
 
       - name: Run SystemPaperDaily
         env:
-          LLM_PROVIDER: ${{ secrets.LLM_PROVIDER || 'deepseek' }}
-          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          # LLM 提供商选择
+          LLM_PROVIDER: ${{ secrets.LLM_PROVIDER || 'openai' }}
+
+          # Gemini 配置
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: ${{ secrets.GEMINI_MODEL || 'gemini-2.5-flash' }}
+
+          # DeepSeek 配置
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          DEEPSEEK_BASE_URL: ${{ secrets.DEEPSEEK_BASE_URL || 'https://api.deepseek.com' }}
+          DEEPSEEK_MODEL: ${{ secrets.DEEPSEEK_MODEL || 'deepseek-reasoner' }}
+
+          # OpenAI 配置
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL || 'https://emtf.aipm9527.online/v1' }}
+          OPENAI_MODEL: ${{ secrets.OPENAI_MODEL || 'gpt-5.1' }}
+
+          # PDF 提取配置
+          PDF_EXTRACT_MODE: ${{ secrets.PDF_EXTRACT_MODE || 'partial' }}
+
+          # GitHub 配置
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+
+          # 通知配置
           WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+          EMAIL_ENABLED: ${{ secrets.EMAIL_ENABLED || 'true' }}
+          QQ_MAIL_USER: ${{ secrets.QQ_MAIL_USER }}
+          QQ_MAIL_AUTH_CODE: ${{ secrets.QQ_MAIL_AUTH_CODE }}
+          QQ_MAIL_TO: ${{ secrets.QQ_MAIL_TO }}
         run: python main.py
