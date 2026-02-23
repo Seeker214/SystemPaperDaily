@@ -1,0 +1,17 @@
+[project]
+name = "systempaperdaily"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "arxiv>=2.1.0",
+    "feedparser>=6.0.10",
+    "google-genai>=1.0.0",
+    "markdown>=3.5.0",
+    "openai>=1.0.0",
+    "pygithub>=2.1.0",
+    "pymupdf>=1.23.0",
+    "python-dotenv>=1.0.0",
+    "requests>=2.31.0",
+]
